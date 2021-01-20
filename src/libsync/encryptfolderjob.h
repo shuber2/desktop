@@ -35,6 +35,8 @@ public:
 
     QString errorString() const;
 
+    void setOwnerName(const QString ownerName) { _ownerName = ownerName; }
+
 signals:
     void finished(int status);
 
@@ -55,5 +57,6 @@ private:
     QByteArray _fileId;
     QByteArray _folderToken;
     QString _errorString;
+    QString _ownerName;
 };
 }

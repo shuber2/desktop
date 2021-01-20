@@ -35,6 +35,11 @@ public:
     PropagateUploadEncrypted(OwncloudPropagator *propagator, const QString &remoteParentPath, SyncFileItemPtr item, QObject *parent = nullptr);
     void start();
 
+    void setOwnerName(const QString& ownerName)
+    {
+        _ownerName = ownerName;
+    }
+
     /* unlocks the current folder that holds this file */
     void unlockFolder();
   // Used by propagateupload
@@ -56,6 +61,7 @@ signals:
     // Emmited after the file is encrypted and everythign is setup.
     void finalized(const QString& path, const QString& filename, quint64 size);
     void error();
+    void folderUnlocked(bool success);
 
 private:
   OwncloudPropagator *_propagator;
@@ -70,6 +76,8 @@ private:
   FolderMetadata *_metadata;
   EncryptedFile _encryptedFile;
   QString _completeFileName;
+
+  QString _ownerName;
 };
 
 

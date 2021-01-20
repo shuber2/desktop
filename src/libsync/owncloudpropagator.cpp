@@ -836,7 +836,7 @@ bool PropagatorCompositeJob::scheduleSelfOrChild()
 
         // If any of the running sub jobs is not parallel, we have to cancel the scheduling
         // of the rest of the list and wait for the blocking job to finish and schedule the next one.
-        auto paral = runningJob->parallelism();
+        auto paral = WaitForFinished;
         if (paral == WaitForFinished) {
             return false;
         }

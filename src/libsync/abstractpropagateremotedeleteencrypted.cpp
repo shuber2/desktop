@@ -78,7 +78,7 @@ void AbstractPropagateRemoteDeleteEncrypted::slotTryLock(const QByteArray &folde
     auto lockJob = new LockEncryptFolderApiJob(_propagator->account(), folderId, this);
     connect(lockJob, &LockEncryptFolderApiJob::success, this, &AbstractPropagateRemoteDeleteEncrypted::slotFolderLockedSuccessfully);
     connect(lockJob, &LockEncryptFolderApiJob::error, this, &AbstractPropagateRemoteDeleteEncrypted::taskFailed);
-    lockJob->start();
+    lockJob->start("AbstractPropagateRemoteDeleteEncrypted");
 }
 
 void AbstractPropagateRemoteDeleteEncrypted::slotFolderLockedSuccessfully(const QByteArray &folderId, const QByteArray &token)
@@ -96,7 +96,6 @@ void AbstractPropagateRemoteDeleteEncrypted::slotFolderLockedSuccessfully(const 
 
 void AbstractPropagateRemoteDeleteEncrypted::slotFolderUnLockedSuccessfully(const QByteArray &folderId)
 {
-    Q_UNUSED(folderId);
     qCDebug(ABSTRACT_PROPAGATE_REMOVE_ENCRYPTED) << "Folder id" << folderId << "successfully unlocked";
     _folderLocked = false;
     _folderToken = "";
@@ -173,8 +172,7 @@ void AbstractPropagateRemoteDeleteEncrypted::unlockFolder()
     auto unlockJob = new UnlockEncryptFolderApiJob(_propagator->account(), _folderId, _folderToken, this);
 
     connect(unlockJob, &UnlockEncryptFolderApiJob::success, this, &AbstractPropagateRemoteDeleteEncrypted::slotFolderUnLockedSuccessfully);
-    connect(unlockJob, &UnlockEncryptFolderApiJob::error, this, [this] (const QByteArray& fileId, int httpReturnCode) {
-        Q_UNUSED(fileId);
+    connect(unlockJob, &UnlockEncryptFolderApiJob::error, this, [this] (const QByteArray& fileId, int httpReturnCode) {        
         _folderLocked = false;
         _folderToken = "";
         _item->_httpErrorCode = httpReturnCode;
@@ -184,7 +182,7 @@ void AbstractPropagateRemoteDeleteEncrypted::unlockFolder()
         _item->_errorString =_errorString;
         taskFailed();
     });
-    unlockJob->start();
+    unlockJob->start("AbstractPropagateRemoteDeleteEncrypted");
 }
 
 void AbstractPropagateRemoteDeleteEncrypted::taskFailed()

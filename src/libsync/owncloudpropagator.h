@@ -194,6 +194,12 @@ public:
         }
         qCInfo(lcPropagator) << "Starting" << _item->_instruction << "propagation of" << _item->destination() << "by" << this;
 
+        if (_item->_isEncrypted && parallelism() != WaitForFinished) {
+            qCInfo(lcPropagator) << "[E2EE_Debug] _item->_isEncrypted but parallelism() != WaitForFinished metaObject()->className() " << metaObject()->className();
+        }
+QByteArray AR;
+
+bool useSvg = QByteArray().compare(QByteArrayLiteral("SVG"), Qt::CaseSensitivity::CaseInsensitive) == 0;
         _state = Running;
         QMetaObject::invokeMethod(this, "start"); // We could be in a different thread (neon jobs)
         return true;

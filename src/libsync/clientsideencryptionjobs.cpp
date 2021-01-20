@@ -9,6 +9,7 @@
 #include <QStack>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QReadWriteLock>
 
 #include "clientsideencryption.h"
 #include "account.h"
@@ -21,6 +22,11 @@
 Q_LOGGING_CATEGORY(lcSignPublicKeyApiJob, "nextcloud.sync.networkjob.sendcsr", QtInfoMsg)
 Q_LOGGING_CATEGORY(lcStorePrivateKeyApiJob, "nextcloud.sync.networkjob.storeprivatekey", QtInfoMsg)
 Q_LOGGING_CATEGORY(lcCseJob, "nextcloud.sync.networkjob.clientsideencrypt", QtInfoMsg)
+
+namespace {
+  static QReadWriteLock LockedFileIdsLock;
+  static QSet<QByteArray> LockedFileIds;
+}
 
 namespace OCC {
 
@@ -158,6 +164,13 @@ UnlockEncryptFolderApiJob::UnlockEncryptFolderApiJob(const AccountPtr& account,
 {
 }
 
+void UnlockEncryptFolderApiJob::start(const QString& invoker)
+{
+    _invoker = invoker;
+    qCInfo(lcCseJob()) << "[E2EE_Debug] Starting the UnlockEncryptFolderApiJob for _fileId " << _fileId << " from invoker " << invoker;
+    start();
+}
+
 void UnlockEncryptFolderApiJob::start()
 {
     QNetworkRequest req;
@@ -174,6 +187,11 @@ void UnlockEncryptFolderApiJob::start()
 bool UnlockEncryptFolderApiJob::finished()
 {
     int retCode = reply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    LockedFileIdsLock.lockForWrite();
+    LockedFileIds.remove(_fileId);
+    LockedFileIdsLock.unlock();
+    qCInfo(lcCseJob()) << "[E2EE_Debug] Finishing the UnlockEncryptFolderApiJob for _fileId " << _fileId << " with retCode " << retCode << " from _invoker " << _invoker;
     if (retCode != 200) {
         qCInfo(lcCseJob()) << "error unlocking file" << path() << errorString() << retCode;
         qCInfo(lcCseJob()) << "Full Error Log" << reply()->readAll();
@@ -223,6 +241,15 @@ LockEncryptFolderApiJob::LockEncryptFolderApiJob(const AccountPtr& account, cons
 {
 }
 
+void LockEncryptFolderApiJob::start(const QString& invoker)
+{
+    _invoker = invoker;
+    qCInfo(lcCseJob()) << "[E2EE_Debug] Starting the LockEncryptFolderApiJob for _fileId " << _fileId << " from invoker " << invoker << " and lockedFiles are" << LockedFileIds;
+    LockedFileIdsLock.lockForWrite();
+    LockedFileIds.insert(_fileId);
+    LockedFileIdsLock.unlock();
+    start();
+}
 void LockEncryptFolderApiJob::start()
 {
     QNetworkRequest req;
@@ -240,6 +267,7 @@ void LockEncryptFolderApiJob::start()
 bool LockEncryptFolderApiJob::finished()
 {
     int retCode = reply()->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    qCInfo(lcCseJob()) << "[E2EE_Debug] Finishing the LockEncryptFolderApiJob for _fileId " << _fileId << " with retCode " << retCode << " from _invoker " << _invoker;
     if (retCode != 200) {
         qCInfo(lcCseJob()) << "error locking file" << path() << errorString() << retCode;
         emit error(_fileId, retCode);

@@ -85,7 +85,7 @@ void PropagateUploadEncrypted::slotTryLock(const QByteArray& fileId)
   auto *lockJob = new LockEncryptFolderApiJob(_propagator->account(), fileId, this);
   connect(lockJob, &LockEncryptFolderApiJob::success, this, &PropagateUploadEncrypted::slotFolderLockedSuccessfully);
   connect(lockJob, &LockEncryptFolderApiJob::error, this, &PropagateUploadEncrypted::slotFolderLockedError);
-  lockJob->start();
+  lockJob->start(_ownerName + "::" + "PropagateUploadEncrypted");
 }
 
 void PropagateUploadEncrypted::slotFolderLockedSuccessfully(const QByteArray& fileId, const QByteArray& token)
@@ -268,9 +268,14 @@ void PropagateUploadEncrypted::unlockFolder()
     auto *unlockJob = new UnlockEncryptFolderApiJob(_propagator->account(),
         _folderId, _folderToken, this);
 
-    connect(unlockJob, &UnlockEncryptFolderApiJob::success, []{ qDebug() << "Successfully Unlocked"; });
-    connect(unlockJob, &UnlockEncryptFolderApiJob::error, []{ qDebug() << "Unlock Error"; });
-    unlockJob->start();
+    connect(unlockJob, &UnlockEncryptFolderApiJob::success, [this] (QByteArray fileId){
+        qDebug() << "Successfully Unlocked";
+        emit folderUnlocked(true);
+    });
+    connect(unlockJob, &UnlockEncryptFolderApiJob::error, [this](QByteArray fileId, int httpStatusCode){ qDebug() << "Unlock Error";
+        emit folderUnlocked(false);
+    });
+    unlockJob->start(_ownerName + "::" + "PropagateUploadEncrypted");
 }
 
 } // namespace OCC

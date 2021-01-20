@@ -143,6 +143,7 @@ public:
     explicit LockEncryptFolderApiJob(const AccountPtr &account, const QByteArray& fileId, QObject *parent = nullptr);
 
 public slots:
+    void start(const QString& invoker);
     void start() override;
 
 protected:
@@ -154,6 +155,7 @@ signals:
 
 private:
     QByteArray _fileId;
+    QString _invoker;
 };
 
 
@@ -168,6 +170,7 @@ public:
         QObject *parent = nullptr);
 
 public slots:
+    void start(const QString& invoker);
     void start() override;
 
 protected:
@@ -181,6 +184,7 @@ private:
     QByteArray _fileId;
     QByteArray _token;
     QBuffer *_tokenBuf;
+    QString _invoker;
 };
 
 

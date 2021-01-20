@@ -59,7 +59,7 @@ void EncryptFolderJob::slotEncryptionFlagSuccess(const QByteArray &fileId)
             this, &EncryptFolderJob::slotLockForEncryptionSuccess);
     connect(lockJob, &LockEncryptFolderApiJob::error,
             this, &EncryptFolderJob::slotLockForEncryptionError);
-    lockJob->start();
+    lockJob->start(_ownerName + "::" + "EncryptFolderJob");
 }
 
 void EncryptFolderJob::slotEncryptionFlagError(const QByteArray &fileId, int httpErrorCode)
@@ -97,7 +97,7 @@ void EncryptFolderJob::slotUploadMetadataSuccess(const QByteArray &folderId)
                     this, &EncryptFolderJob::slotUnlockFolderSuccess);
     connect(unlockJob, &UnlockEncryptFolderApiJob::error,
                     this, &EncryptFolderJob::slotUnlockFolderError);
-    unlockJob->start();
+    unlockJob->start(_ownerName + "::" + "EncryptFolderJob");
 }
 
 void EncryptFolderJob::slotUpdateMetadataError(const QByteArray &folderId, int httpReturnCode)
@@ -109,7 +109,7 @@ void EncryptFolderJob::slotUpdateMetadataError(const QByteArray &folderId, int h
                     this, &EncryptFolderJob::slotUnlockFolderSuccess);
     connect(unlockJob, &UnlockEncryptFolderApiJob::error,
                     this, &EncryptFolderJob::slotUnlockFolderError);
-    unlockJob->start();
+    unlockJob->start(_ownerName + "::" + "EncryptFolderJob");
 }
 
 void EncryptFolderJob::slotLockForEncryptionError(const QByteArray &fileId, int httpErrorCode)

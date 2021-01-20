@@ -106,8 +106,6 @@ void PropagateRemoteMkdir::slotStartEncryptedMkcolJob(const QString &path, const
                             {{"e2e-token", _uploadEncryptedHelper->_folderToken }},
                             this);
     connect(job, qOverload<QNetworkReply::NetworkError>(&MkColJob::finished),
-            _uploadEncryptedHelper, &PropagateUploadEncrypted::unlockFolder);
-    connect(job, qOverload<QNetworkReply::NetworkError>(&MkColJob::finished),
             this, &PropagateRemoteMkdir::slotMkcolJobFinished);
     _job = job;
     _job->start();
@@ -153,6 +151,7 @@ void PropagateRemoteMkdir::slotMkdir()
       this, &PropagateRemoteMkdir::slotStartEncryptedMkcolJob);
     connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::error,
       []{ qCDebug(lcPropagateRemoteMkdir) << "Error setting up encryption."; });
+    _uploadEncryptedHelper->setOwnerName("PropagateRemoteMkdir");
     _uploadEncryptedHelper->start();
 }
 
@@ -209,14 +208,23 @@ void PropagateRemoteMkdir::slotMkcolJobFinished()
         // We still need to mark that folder encrypted
         propagator()->_activeJobList.append(this);
 
-        // We're expecting directory path in /Foo/Bar convention...
         Q_ASSERT(_job->path().startsWith('/') && !_job->path().endsWith('/'));
-        // But encryption job expect it in Foo/Bar/ convention
-        const auto path = _job->path().mid(1);
 
-        auto job = new OCC::EncryptFolderJob(propagator()->account(), propagator()->_journal, path, _item->_fileId, this);
-        connect(job, &OCC::EncryptFolderJob::finished, this, &PropagateRemoteMkdir::slotEncryptFolderFinished);
-        job->start();
+        const auto jobPath = _job->path().mid(1);
+
+        connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::folderUnlocked, this, [this, jobPath] (bool success) {
+            if (success) {
+                // We're expecting directory path in /Foo/Bar convention...
+                auto job = new OCC::EncryptFolderJob(propagator()->account(), propagator()->_journal, jobPath, _item->_fileId, this);
+                connect(job, &OCC::EncryptFolderJob::finished, this, &PropagateRemoteMkdir::slotEncryptFolderFinished);
+                job->setOwnerName("PropagateRemoteMkdir");
+                job->start();
+            } else {
+                done(SyncFileItem::NormalError);
+            }
+        });
+      _uploadEncryptedHelper->unlockFolder();
+
     }
 }
 

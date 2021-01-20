@@ -249,6 +249,7 @@ void PropagateUploadFileCommon::start()
             this, &PropagateUploadFileCommon::setupEncryptedFile);
     connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::error,
             []{ qCDebug(lcPropagateUpload) << "Error setting up encryption."; });
+    _uploadEncryptedHelper->setOwnerName("PropagateUploadFileCommon");
     _uploadEncryptedHelper->start();
 }
 
@@ -785,7 +786,15 @@ void PropagateUploadFileCommon::finalize()
     propagator()->_journal->commit("upload file start");
 
     if (_uploadingEncrypted) {
+        connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::folderUnlocked, this, [this] (bool success) {
+            if (success) {
+                done(SyncFileItem::Success);
+            } else {
+                done(SyncFileItem::NormalError);
+            }
+        });
       _uploadEncryptedHelper->unlockFolder();
+      return;
     }
     done(SyncFileItem::Success);
 }
