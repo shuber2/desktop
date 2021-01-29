@@ -343,10 +343,7 @@ void AccountSettings::slotOpenMkFolderDialog()
 
     FolderCreationDialog folderCreationDialog;
     folderCreationDialog.setDestination(fileName);
-    if (folderCreationDialog.exec() == FolderCreationDialog::Accepted) {
-        fileName = "";
-        fileName = "fwfw";
-    }
+    folderCreationDialog.exec();
 }
 
 void AccountSettings::slotEditCurrentLocalIgnoredFiles()
