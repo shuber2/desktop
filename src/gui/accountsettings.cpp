@@ -17,6 +17,7 @@
 #include "ui_accountsettings.h"
 
 #include "theme.h"
+#include "foldercreationdialog.h"
 #include "folderman.h"
 #include "folderwizard.h"
 #include "folderstatusmodel.h"
@@ -333,6 +334,21 @@ void AccountSettings::slotEditCurrentIgnoredFiles()
     openIgnoredFilesDialog(f->path());
 }
 
+void AccountSettings::slotOpenMkFolderDialog()
+{
+    QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
+    if (!selected.isValid() || _model->classify(selected) != FolderStatusModel::SubFolder)
+        return;
+    QString fileName = _model->data(selected, FolderStatusDelegate::FolderPathRole).toString();
+
+    FolderCreationDialog folderCreationDialog;
+    folderCreationDialog.setDestination(fileName);
+    if (folderCreationDialog.exec() == FolderCreationDialog::Accepted) {
+        fileName = "";
+        fileName = "fwfw";
+    }
+}
+
 void AccountSettings::slotEditCurrentLocalIgnoredFiles()
 {
     QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
@@ -402,6 +418,13 @@ void AccountSettings::slotSubfolderContextMenuRequested(const QModelIndex& index
 
     ac = menu.addAction(tr("Edit Ignored Files"));
     connect(ac, &QAction::triggered, this, &AccountSettings::slotEditCurrentLocalIgnoredFiles);
+
+    ac = menu.addAction(tr("Create new folder"));
+    connect(ac, &QAction::triggered, this, &AccountSettings::slotOpenMkFolderDialog);
+
+    if (!QFile::exists(fileName)) {
+        ac->setEnabled(false);
+    }
 
     const auto folder = info->_folder;
     if (folder && folder->virtualFilesEnabled()) {

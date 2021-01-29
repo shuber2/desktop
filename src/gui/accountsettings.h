@@ -85,6 +85,7 @@ protected slots:
     void slotOpenCurrentFolder(); // sync folder
     void slotOpenCurrentLocalSubFolder(); // selected subfolder in sync folder
     void slotEditCurrentIgnoredFiles();
+    void slotOpenMkFolderDialog();
     void slotEditCurrentLocalIgnoredFiles();
     void slotEnableVfsCurrentFolder();
     void slotDisableVfsCurrentFolder();
