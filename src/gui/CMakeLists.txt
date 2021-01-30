@@ -53,6 +53,7 @@ set(client_UI_SRCS
     wizard/owncloudsetupnocredspage.ui
     wizard/owncloudwizardresultpage.ui
     wizard/webview.ui
+    wizard/welcomepage.ui
 )
 
 set(client_SRCS
@@ -135,6 +136,7 @@ set(client_SRCS
     wizard/webviewpage.cpp
     wizard/webview.cpp
     wizard/slideshow.cpp
+    wizard/welcomepage.cpp
 )
 
 IF(BUILD_UPDATER)
