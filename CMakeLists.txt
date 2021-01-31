@@ -3,6 +3,8 @@ set(CMAKE_CXX_STANDARD 14)
 
 project(client)
 
+find_package(ECM 5.50.0 NO_MODULE)
+
 if(UNIT_TESTING)
     include(CTest)
     enable_testing()
@@ -43,7 +45,7 @@ if (NOT DEFINED PACKAGE)
     set(PACKAGE "${LINUX_PACKAGE_SHORTNAME}-client")
 endif()
 
-set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules )
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${ECM_MODULE_PATH} ${CMAKE_MODULE_PATH})
 
 if(NOT CRASHREPORTER_EXECUTABLE)
     set(CRASHREPORTER_EXECUTABLE "${APPLICATION_EXECUTABLE}_crash_reporter")
@@ -187,10 +189,8 @@ if(BUILD_CLIENT)
         find_package(Sparkle)
     endif()
 
-    if(UNIX)
-        find_package(INotify REQUIRED)
-    else()
-        find_package(INotify)
+    if(UNIX AND NOT APPLE)
+        find_package(Inotify REQUIRED)
     endif()
     find_package(Sphinx)
     find_package(PdfLatex)
