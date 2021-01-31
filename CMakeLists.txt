@@ -5,6 +5,10 @@ project(client)
 
 find_package(ECM 5.50.0 NO_MODULE)
 
+include(FeatureSummary)
+feature_summary(WHAT REQUIRED_PACKAGES_NOT_FOUND FATAL_ON_MISSING_REQUIRED_PACKAGES)
+set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://projects.kde.org/projects/kdesupport/extra-cmake-modules")
+
 if(UNIT_TESTING)
     include(CTest)
     enable_testing()
@@ -143,10 +147,10 @@ endif()
 # this option builds the updater
 option(BUILD_UPDATER "BUILD_UPDATER" OFF)
 if(BUILD_UPDATER)
-   message("Compiling with updater")
+   message(STATUS "Compiling with updater")
    add_definitions(-DBUILD_UPDATER=1)
 else()
-   message("Compiling without updater")
+   message(STATUS "Compiling without updater")
 endif()
 
 # this option builds the shell integration
@@ -269,3 +273,5 @@ elseif(BUILD_CLIENT)
     install( FILES sync-exclude.lst DESTINATION ${SYSCONFDIR}/${APPLICATION_SHORTNAME} )
     configure_file(sync-exclude.lst bin/sync-exclude.lst COPYONLY)
 endif()
+
+feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
