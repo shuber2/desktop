@@ -742,6 +742,10 @@ void FolderStatusModel::slotUpdateDirectories(const QStringList &list)
         parentInfo->_folder->journalDb()->getFileRecordByE2eMangledName(removeTrailingSlash(relativePath), &rec);
         if (rec.isValid()) {
             newInfo._name = removeTrailingSlash(rec._path).split('/').last();
+            newInfo._path = rec._path;
+            if (!newInfo._path.endsWith('/')) {
+                newInfo._path += '/';
+            }
         } else {
             newInfo._name = removeTrailingSlash(relativePath).split('/').last();
         }

@@ -337,13 +337,38 @@ void AccountSettings::slotEditCurrentIgnoredFiles()
 void AccountSettings::slotOpenMkFolderDialog()
 {
     QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
-    if (!selected.isValid() || _model->classify(selected) != FolderStatusModel::SubFolder)
-        return;
-    QString fileName = _model->data(selected, FolderStatusDelegate::FolderPathRole).toString();
 
-    FolderCreationDialog folderCreationDialog;
-    folderCreationDialog.setDestination(fileName);
-    folderCreationDialog.exec();
+    if (!selected.isValid()) {
+        return;
+    }
+
+    const auto classification = _model->classify(selected);
+
+    if (classification != FolderStatusModel::SubFolder && classification != FolderStatusModel::RootFolder) {
+        return;
+    }
+
+    QString fileName;
+
+    if (classification == FolderStatusModel::RootFolder) {
+        const auto alias = _model->data(selected, FolderStatusDelegate::FolderAliasRole).toString();
+        const auto folderMan = FolderMan::instance();
+        QPointer<Folder> folder = folderMan->folder(alias);
+        if (folder) {
+            fileName = folder->path();
+        }
+    } else {
+        fileName = _model->data(selected, FolderStatusDelegate::FolderPathRole).toString();
+    }
+
+    if (!fileName.isEmpty()) {
+        if (fileName.endsWith('/')) {
+            fileName.chop(1);
+        }
+        FolderCreationDialog folderCreationDialog;
+        folderCreationDialog.setDestination(fileName);
+        folderCreationDialog.exec();
+    }
 }
 
 void AccountSettings::slotEditCurrentLocalIgnoredFiles()
@@ -494,6 +519,13 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
 
     ac = menu->addAction(tr("Edit Ignored Files"));
     connect(ac, &QAction::triggered, this, &AccountSettings::slotEditCurrentIgnoredFiles);
+
+    ac = menu->addAction(tr("Create new folder"));
+    connect(ac, &QAction::triggered, this, &AccountSettings::slotOpenMkFolderDialog);
+
+    if (!QFile::exists(folder->path())) {
+        ac->setEnabled(false);
+    }
 
     if (!_ui->_folderList->isExpanded(index) && folder->supportsSelectiveSync()) {
         ac = menu->addAction(tr("Choose what to sync"));

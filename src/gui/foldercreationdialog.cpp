@@ -17,6 +17,8 @@ FolderCreationDialog::FolderCreationDialog(QWidget *parent) :
     ui->setupUi(this);
 
     ui->labelErrorMessage->setVisible(false);
+
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 }
 
 FolderCreationDialog::~FolderCreationDialog()
