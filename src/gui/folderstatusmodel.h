@@ -62,6 +62,7 @@ public:
         Folder *_folder = nullptr;
         QString _name;
         QString _path;
+        QString _e2eMangledName;
         QVector<int> _pathIdx;
         QVector<SubFolderInfo> _subs;
         qint64 _size = 0;

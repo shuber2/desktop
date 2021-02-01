@@ -595,8 +595,11 @@ void FolderStatusModel::fetchMore(const QModelIndex &parent)
         return;
     info->resetSubs(this, parent);
     QString path = info->_folder->remotePathTrailingSlash();
-    if (info->_path != QLatin1String("/")) {
-        path += info->_path;
+
+    const QString infoPath = (info->_isEncrypted && !info->_e2eMangledName.isEmpty()) ? info->_e2eMangledName : info->_path;
+
+    if (infoPath != QLatin1String("/")) {
+        path += infoPath;
     }
 
     auto *job = new LsColJob(_accountState->account(), path, this);
@@ -742,7 +745,10 @@ void FolderStatusModel::slotUpdateDirectories(const QStringList &list)
         parentInfo->_folder->journalDb()->getFileRecordByE2eMangledName(removeTrailingSlash(relativePath), &rec);
         if (rec.isValid()) {
             newInfo._name = removeTrailingSlash(rec._path).split('/').last();
-            newInfo._path = rec._path;
+            if (rec._isE2eEncrypted && !rec._e2eMangledName.isEmpty()) {
+                newInfo._e2eMangledName = relativePath;
+                newInfo._path = rec._path;
+            }
             if (!newInfo._path.endsWith('/')) {
                 newInfo._path += '/';
             }
